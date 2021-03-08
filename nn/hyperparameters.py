@@ -1,0 +1,3 @@
+
+MAX_RADIUS = 1
+MAX_LENGTH = 1
