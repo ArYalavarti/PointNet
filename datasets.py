@@ -1,7 +1,6 @@
 import glob
 import tensorflow as tf
 import numpy as np
-import nn.hyperparameters as hp
 from ntpath import basename
 
 
@@ -10,7 +9,8 @@ class PointCloudDataset:
     Class for containing the training and test sets
     """
 
-    def __init__(self, data_dir, val=False):
+    def __init__(self, data_dir, val=False, batch_size=32):
+        self.batch_size = batch_size
         if val:
             self.data_dir = data_dir + "/test"
         else:
@@ -56,6 +56,6 @@ class PointCloudDataset:
             self._point_cloud_gen,
             output_types=(tf.float64, tf.int64),
             output_shapes=((None, 3), ()))
-        data = data.batch(hp.BATCH_SIZE)
+        data = data.batch(self.batch_size)
 
         return data
