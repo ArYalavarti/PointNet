@@ -5,8 +5,9 @@ from datetime import datetime
 
 from datasets import PointCloudDataset
 from args import parse_args
-from nn import Classification as hp, PointNet, PointNetSoftmaxClassification, AE
-from eval import confusion_plot, generate_new_shapes_test
+from nn import Classification as hp, PointNet, PointNetSoftmaxClassification
+from eval import confusion_plot, generate_new_shapes_test, confusion_plot2, \
+    visualize_point_cloud
 from geometry import *
 
 tf.keras.backend.set_floatx('float64')
@@ -18,10 +19,10 @@ if __name__ == '__main__':
     timestamp = time_now.strftime("%m%d%y-%H%M%S")
 
     model = PointNet()
-    ae = AE(128)
+    # ae = AE(128)
 
     # Set up tf checkpoint manager
-    checkpoint = tf.train.Checkpoint(model=model, ae=ae)
+    checkpoint = tf.train.Checkpoint(model=model)
 
     checkpoint_path = ARGS.log_dir + "/checkpoints"
     if ARGS.load_checkpoint:
@@ -40,11 +41,15 @@ if __name__ == '__main__':
         checkpoint.restore(manager.latest_checkpoint).expect_partial()
         print("Restored checkpoint")
 
-    train_data = PointCloudDataset(ARGS.data_dir, val=False, batch_size=hp.BATCH_SIZE)
-    test_data = PointCloudDataset(ARGS.data_dir, val=True, batch_size=hp.BATCH_SIZE)
+    train_data = PointCloudDataset(ARGS.data_dir, val=False,
+                                   batch_size=hp.BATCH_SIZE)
+    test_data = PointCloudDataset(ARGS.data_dir, val=True,
+                                  batch_size=hp.BATCH_SIZE)
 
     train_obj = PointNetSoftmaxClassification(
-        model, ae, train_log_dir, test_log_dir, manager)
+        model, train_log_dir, test_log_dir, manager)
+    #
+    # train_obj = PointNetAutoencoderGeneration(ae, train_log_dir, test_log_dir, manager)
 
     try:
         with tf.device("/device:" + ARGS.device):
@@ -61,11 +66,11 @@ if __name__ == '__main__':
                     confusion = np.load(ARGS.load_confusion)
 
                 if ARGS.mode == 'train':
-                    confusion_plot(model, train_data, ARGS.mode, cm=confusion,
-                                   filename="train")
+                    confusion_plot2(model, train_data, ARGS.mode,
+                                    cm=confusion, filename="train")
                 else:
-                    confusion_plot(model, test_data, ARGS.mode, cm=confusion,
-                                   filename="test")
+                    confusion_plot2(model, test_data, ARGS.mode,
+                                    cm=confusion, filename="test")
 
     except RuntimeError as e:
         # Something went wrong should not get here

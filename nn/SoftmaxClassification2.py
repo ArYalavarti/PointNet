@@ -11,26 +11,19 @@ class PointNetSoftmaxClassification:
     This class implements Softmax classification on the point cloud data
     """
 
-    def __init__(self, model, ae, train_log_dir, test_log_dir, manager):
+    def __init__(self, model, train_log_dir, test_log_dir, manager):
         self._model = model
-        self._ae = ae
 
         self._loss_fn = tf.nn.sparse_softmax_cross_entropy_with_logits
-        self._ae_loss_fn = KLD
         self._manager = manager
 
         self._train_loss = Mean(name='train_loss')
         self._test_loss = Mean(name='test_loss')
 
-        self._train_ae_loss = Mean(name='train_ae_loss')
-        self._test_ae_loss = Mean(name='test_ae_loss')
-
         self._train_acc = SparseCategoricalAccuracy(name='train_acc')
         self._test_acc = SparseCategoricalAccuracy(name='test_acc')
 
         self._train_loss.reset_states()
-        self._train_ae_loss.reset_states()
-        self._test_ae_loss.reset_states()
         self._test_loss.reset_states()
 
         self._train_acc.reset_states()
@@ -45,20 +38,7 @@ class PointNetSoftmaxClassification:
     @tf.function
     def _train_step(self, inputs, labels):
         with tf.GradientTape() as tape:
-            autoencoded, _ = self._ae(inputs, training=True)
-            x = tf.expand_dims(labels, -1)
-            a = tf.gather_nd(autoencoded, x, batch_dims=1)
-            ae_loss = self._ae_loss_fn(inputs, a)
-
-        gradients = tape.gradient(ae_loss, self._ae.trainable_variables)
-        self._ae.optimizer.apply_gradients(zip(gradients, self._ae.trainable_variables))
-        self._train_ae_loss(ae_loss)
-
-        with tf.GradientTape() as tape:
-            autoencoded, _ = self._ae(inputs, training=True)
-            x = tf.expand_dims(labels, -1)
-            a = tf.gather_nd(autoencoded, x, batch_dims=1)
-            predictions = self._model(a, training=True)
+            predictions = self._model(inputs, training=True)
             loss = self._loss_fn(labels, predictions)
 
         gradients = tape.gradient(loss, self._model.trainable_variables)
@@ -67,20 +47,13 @@ class PointNetSoftmaxClassification:
 
     @tf.function
     def _test_step(self, inputs, labels):
-        autoencoded, encoded = self._ae(inputs, training=True)
-        x = tf.expand_dims(labels, -1)
-        a = tf.gather_nd(autoencoded, x, batch_dims=1)
-        predictions = self._model(a)
+        predictions = self._model(inputs)
         self._test_loss(self._loss_fn(labels, predictions))
-        self._test_ae_loss(self._ae_loss_fn(inputs, a))
         self._test_acc(labels, predictions)
 
     @tf.function
     def _train_acc_step(self, inputs, labels):
-        autoencoded, _ = self._ae(inputs)
-        x = tf.expand_dims(labels, -1)
-        a = tf.gather_nd(autoencoded, x, batch_dims=1)
-        predictions = self._model(a)
+        predictions = self._model(inputs)
         self._train_acc(labels, predictions)
 
     def train(self, train_data, test_data, num_epochs, init_epoch=0):
@@ -98,11 +71,9 @@ class PointNetSoftmaxClassification:
             self._update_log(ep_idx+init_epoch + 1)
 
             self._train_loss.reset_states()
-            self._train_ae_loss.reset_states()
             self._train_acc.reset_states()
 
             self._test_loss.reset_states()
-            self._test_ae_loss.reset_states()
             self._test_acc.reset_states()
 
             self._manager.save()
@@ -121,14 +92,10 @@ class PointNetSoftmaxClassification:
         with self._train_summary_writer.as_default():
             tf.summary.scalar('loss', self._train_loss.result().numpy(),
                               step=epoch_idx)
-            tf.summary.scalar('ae_loss', self._train_ae_loss.result().numpy(),
-                              step=epoch_idx)
             tf.summary.scalar('acc', self._train_acc.result().numpy(),
                               step=epoch_idx)
         with self._test_summary_writer.as_default():
             tf.summary.scalar('loss', self._test_loss.result().numpy(),
-                              step=epoch_idx)
-            tf.summary.scalar('ae_loss', self._test_ae_loss.result().numpy(),
                               step=epoch_idx)
             tf.summary.scalar('acc', self._test_acc.result().numpy(),
                               step=epoch_idx)
