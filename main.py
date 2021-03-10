@@ -1,8 +1,3 @@
-import glob
-import random
-import re
-from collections import defaultdict
-
 import tensorflow as tf
 import numpy as np
 
@@ -11,6 +6,8 @@ from datetime import datetime
 from datasets import PointCloudDataset
 from args import parse_args
 from nn import Classification as hp, PointNet, PointNetSoftmaxClassification
+from eval import confusion_plot, generate_new_shapes_test
+from geometry import *
 
 tf.keras.backend.set_floatx('float64')
 
@@ -25,7 +22,7 @@ if __name__ == '__main__':
     # Set up tf checkpoint manager
     checkpoint = tf.train.Checkpoint(model=model)
 
-    checkpoint_path = ARGS.log_dir + f"/checkpoints"
+    checkpoint_path = ARGS.log_dir + "/checkpoints"
     if ARGS.load_checkpoint:
         timestamp = ARGS.load_checkpoint
 
@@ -45,14 +42,33 @@ if __name__ == '__main__':
     train_data = PointCloudDataset(ARGS.data_dir, val=False, batch_size=hp.BATCH_SIZE)
     test_data = PointCloudDataset(ARGS.data_dir, val=True, batch_size=hp.BATCH_SIZE)
 
+    train_obj = PointNetSoftmaxClassification(
+        model, train_log_dir, test_log_dir, manager)
+
     try:
         with tf.device("/device:" + ARGS.device):
             if ARGS.command == "train":
-                train_obj = PointNetSoftmaxClassification(
-                    model, train_log_dir, test_log_dir, manager)
 
                 train_obj.train(train_data, test_data, ARGS.epochs,
                                 ARGS.init_epoch)
+
+            elif ARGS.command == "test":
+                train_obj = PointNetSoftmaxClassification(
+                    model, train_log_dir, test_log_dir, manager)
+
+                train_obj.test(train_data, test_data)
+
+            elif ARGS.command == 'evaluate':
+                generate_new_shapes_test(model)
+                exit(0)
+                confusion = None
+                if ARGS.load_confusion:
+                    confusion = np.load(ARGS.load_confusion)
+
+                if ARGS.mode == 'train':
+                    confusion_plot(model, train_data, ARGS.mode, cm=confusion)
+                else:
+                    confusion_plot(model, test_data, ARGS.mode, cm=confusion)
 
     except RuntimeError as e:
         # Something went wrong should not get here

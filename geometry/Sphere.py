@@ -3,7 +3,6 @@ import nn.hyperparameters as hp
 
 from abc import ABC
 from geometry.PointCloud import _PointCloud
-from viz import visualize_point_cloud
 
 
 class Sphere(_PointCloud, ABC):
@@ -17,8 +16,3 @@ class Sphere(_PointCloud, ABC):
 
     def get_mesh(self):
         return self.mesh(self.R)
-
-
-if __name__ == '__main__':
-    p = Sphere().build()
-    visualize_point_cloud(p)

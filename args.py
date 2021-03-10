@@ -69,6 +69,12 @@ def parse_args():
     ev.set_defaults(command="evaluate")
 
     ev.add_argument(
+        "--load-confusion",
+        required=False,
+        type=str,
+        help="Filepath to confusion matrix")
+
+    ev.add_argument(
         "--mode",
         required=True,
         default="train",

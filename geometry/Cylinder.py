@@ -3,7 +3,6 @@ import nn.hyperparameters as hp
 
 from abc import ABC
 from geometry.PointCloud import _PointCloud
-from viz import visualize_point_cloud
 
 
 class Cylinder(_PointCloud, ABC):
@@ -18,8 +17,3 @@ class Cylinder(_PointCloud, ABC):
 
     def get_mesh(self):
         return self.mesh(radius=0.5*self.L, height=self.L)
-
-
-if __name__ == '__main__':
-    p = Cylinder().build()
-    visualize_point_cloud(p)

@@ -3,7 +3,6 @@ import nn.hyperparameters as hp
 
 from abc import ABC
 from geometry.PointCloud import _PointCloud
-from viz import visualize_point_cloud
 
 
 class Cube(_PointCloud, ABC):
@@ -20,8 +19,3 @@ class Cube(_PointCloud, ABC):
 
     def center_point_cloud(self, p, **kwargs):
         return p - (self.L / 2)
-
-
-if __name__ == '__main__':
-    p = Cube().build()
-    visualize_point_cloud(p)
