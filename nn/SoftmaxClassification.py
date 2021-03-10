@@ -47,8 +47,7 @@ class PointNetSoftmaxClassification:
     @tf.function
     def _test_step(self, inputs, labels):
         predictions = self._model(inputs, training=False)
-        one_hot_labels = tf.one_hot(labels, depth=self._model.num_tasks)
-        self._test_loss(self._loss_fn(one_hot_labels, predictions))
+        self._test_loss(self._loss_fn(labels, predictions))
         self._test_acc(labels, predictions)
 
     @tf.function
@@ -59,9 +58,7 @@ class PointNetSoftmaxClassification:
     def train(self, train_data, test_data, num_epochs, init_epoch=0):
         for ep_idx in range(num_epochs):
             print(f"===== Epoch {ep_idx+init_epoch+1} =====")
-            i = 0
             for input_batch, label_batch in train_data.data:
-                print(i)
                 self._train_step(input_batch, label_batch)
 
             for input_batch, label_batch in train_data.data:

@@ -10,7 +10,7 @@ from datetime import datetime
 
 from datasets import PointCloudDataset
 from args import parse_args
-from nn import *
+from nn import Classification as hp, PointNet, PointNetSoftmaxClassification
 
 tf.keras.backend.set_floatx('float64')
 
@@ -42,8 +42,8 @@ if __name__ == '__main__':
         checkpoint.restore(manager.latest_checkpoint).expect_partial()
         print("Restored checkpoint")
 
-    train_data = PointCloudDataset(ARGS.data_dir, val=False)
-    test_data = PointCloudDataset(ARGS.data_dir, val=True)
+    train_data = PointCloudDataset(ARGS.data_dir, val=False, batch_size=hp.BATCH_SIZE)
+    test_data = PointCloudDataset(ARGS.data_dir, val=True, batch_size=hp.BATCH_SIZE)
 
     try:
         with tf.device("/device:" + ARGS.device):

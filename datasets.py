@@ -2,6 +2,7 @@ import glob
 import tensorflow as tf
 import numpy as np
 from ntpath import basename
+from tqdm import tqdm
 
 
 class PointCloudDataset:
@@ -43,7 +44,7 @@ class PointCloudDataset:
         Generator that yields a point cloud and associated class label
         :return: (np.ndarray, int)
         """
-        for file, label in zip(self.file_list, self.labels):
+        for file, label in zip(tqdm(self.file_list), self.labels):
             pc = np.load(file)
             yield pc, self.classes.index(label)
 
