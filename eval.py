@@ -24,7 +24,7 @@ def visualize_point_cloud(point_cloud):
     o3d.visualization.draw_geometries([pcd], mesh_show_back_face=True)
 
 
-def confusion_plot2(model, dataset, mode, filename="", cm=None):
+def confusion_plot(model, dataset, mode, filename="", cm=None):
     if cm is None:
         print("Generating confusion matrix")
         labels = []
@@ -45,7 +45,7 @@ def confusion_plot2(model, dataset, mode, filename="", cm=None):
     plt.show()
 
 
-def generate_new_shapes_test2(model):
+def generate_new_shapes_test(model):
     shapes = [Cone(), Cube(), Cylinder(), Sphere(), Torus()]
     correct = 0
     total = 0
@@ -56,46 +56,6 @@ def generate_new_shapes_test2(model):
             p = np.expand_dims(p, axis=0)
             pred = model(p)[0]
             pred = np.argmax(pred)
-            if e == pred:
-                correct += 1
-            total += 1
-    print(correct/total)
-
-
-def confusion_plot(model, ae, dataset, mode, filename="", cm=None):
-    if cm is None:
-        print("Generating confusion matrix")
-        labels = []
-        predictions = []
-        for inputs, l in dataset.data:
-            predictions.extend(model.predict(ae, inputs))
-            labels.extend(l.numpy())
-
-        cm = tf.math.confusion_matrix(labels, predictions).numpy()
-        np.save(filename, cm)
-
-    sns.heatmap(cm, cmap="Blues", annot=True, fmt='g',
-                xticklabels=dataset.classes)
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
-    plt.title(f"Confusion Matrix ({mode.capitalize()})")
-    plt.show()
-
-
-def generate_new_shapes_test(model, ae):
-    shapes = [Cone(), Cube(), Cylinder(), Sphere(), Torus()]
-    correct = 0
-    total = 0
-
-    # x = np.random.normal(size=(1, 128))
-    # y = ae.decode(x)
-    # visualize_point_cloud(y.numpy()[0])
-
-    for e, s in enumerate(shapes):
-        for i in tqdm(range(1000)):
-            p = s.build()
-            p = np.expand_dims(p, axis=0)
-            pred = model.predict(ae, p)[0]
             if e == pred:
                 correct += 1
             total += 1
