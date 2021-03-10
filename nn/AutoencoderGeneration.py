@@ -11,7 +11,7 @@ def jensen_shannon_divergence(P_a, P_b):
     return 1/2 * (KLDivergence()(P_a, M)) + 1/2 * (KLDivergence()(P_b, M))
 
 
-class PointNetSoftmaxClassification:
+class PointNetAutoencoderGeneration:
     """
     This class implements Softmax classification on the point cloud data
     """
@@ -47,37 +47,33 @@ class PointNetSoftmaxClassification:
         self._train_summary_writer = create_file_writer(train_log_dir)
         self._test_summary_writer = create_file_writer(test_log_dir)
 
-    @tf.function
+    # @tf.function
     def _train_step(self, inputs, labels):
         with tf.GradientTape() as tape:
-            autoencoded, encoded = self._ae(inputs, training=True)
-            ae_loss = self._ae_loss_fn(autoencoded, inputs)
-
-        gradients = tape.gradient(ae_loss, self._ae.trainable_variables)
-        self._ae.optimizer.apply_gradients(zip(gradients, self._ae.trainable_variables))
-        self._train_ae_loss(ae_loss)
-
-        with tf.GradientTape() as tape:
-            autoencoded, encoded = self._ae(inputs, training=True)
-            predictions = self._model(encoded, training=True)
+            autoencoded = self._model.ae(inputs, training=True)
+            predictions = self._model(autoencoded, training=True)
             loss = self._loss_fn(labels, predictions)
+
+        gradients = ae_tape.gradient(ae_loss, self._model.ae.trainable_variables)
+        self._model.ae.optimizer.apply_gradients(zip(gradients, self._model.ae.trainable_variables))
+        self._train_ae_loss(ae_loss)
 
         gradients = tape.gradient(loss, self._model.trainable_variables)
         self._model.optimizer.apply_gradients(zip(gradients, self._model.trainable_variables))
         self._train_loss(loss)
+        return loss
 
     @tf.function
     def _test_step(self, inputs, labels):
-        autoencoded, encoded = self._ae(inputs, training=True)
-        predictions = self._model(encoded, training=True)
+        predictions = self._model(inputs, training=False)
+        autoencoded = self._model.ae(inputs, training=False)
         self._test_loss(self._loss_fn(labels, predictions))
         self._test_ae_loss(self._ae_loss_fn(autoencoded, inputs))
         self._test_acc(labels, predictions)
 
     @tf.function
     def _train_acc_step(self, inputs, labels):
-        autoencoded, encoded = self._ae(inputs, training=True)
-        predictions = self._model(encoded, training=True)
+        predictions = self._model(inputs, training=False)
         self._train_acc(labels, predictions)
 
     def train(self, train_data, test_data, num_epochs, init_epoch=0):
