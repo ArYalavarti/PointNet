@@ -1,5 +1,6 @@
 import open3d as o3d
 import nn.hyperparameters as hp
+import numpy as np
 
 from abc import ABC
 from geometry.PointCloud import _PointCloud
@@ -7,8 +8,8 @@ from geometry.PointCloud import _PointCloud
 
 class Cone(_PointCloud, ABC):
     """
-    Factory object for creating point clouds of cone geometries of height
-    hp.MAX_LENGTH and radius 0.5*hp.MAX_LENGTH centered at (0, 0, 0)
+    Factory object for creating point clouds of cone geometries of max height
+    hp.MAX_LENGTH and max radius 0.5*hp.MAX_LENGTH
     """
 
     def __init__(self):
@@ -16,8 +17,5 @@ class Cone(_PointCloud, ABC):
         self.mesh = o3d.geometry.TriangleMesh.create_cone
 
     def get_mesh(self):
-        return self.mesh(radius=0.5*self.L, height=self.L)
-
-    def center_point_cloud(self, p, **kwargs):
-        p[:, 2] -= self.L / 2
-        return p
+        l = np.random.randint(1, self.L)
+        return self.mesh(radius=0.5*l, height=l)

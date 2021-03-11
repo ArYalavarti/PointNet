@@ -12,16 +12,16 @@ def visualize_point_cloud(point_cloud):
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(point_cloud)
 
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        #
-        # ax.scatter(point_cloud[:, 0], point_cloud[:, 1], point_cloud[:, 2])
-        # plt.show()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.scatter(point_cloud[:, 0], point_cloud[:, 1], point_cloud[:, 2])
+        plt.show()
 
     else:
         pcd = point_cloud
 
-    o3d.visualization.draw_geometries([pcd], mesh_show_back_face=True)
+    # o3d.visualization.draw_geometries([pcd], mesh_show_back_face=True)
 
 
 def confusion_plot(model, dataset, mode, filename="", cm=None):

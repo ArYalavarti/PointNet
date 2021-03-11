@@ -1,5 +1,5 @@
-MAX_RADIUS = 1
-MAX_LENGTH = 1
+MAX_RADIUS = 10
+MAX_LENGTH = 10
 
 
 class Classification:

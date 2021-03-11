@@ -1,5 +1,6 @@
 import open3d as o3d
 import numpy as np
+from eval import visualize_point_cloud
 
 
 def triangle_areas(v1, v2, v3):
@@ -29,7 +30,7 @@ class _PointCloud:
         """
         The number of points in the randomly sampled point cloud
         """
-        return 1000
+        return 512
 
     def get_mesh(self, *args):
         """
@@ -37,9 +38,6 @@ class _PointCloud:
         :return: open3d.geometry.TriangleMesh for a given shape
         """
         raise NotImplementedError
-
-    def center_point_cloud(self, p, **kwargs):
-        return p
 
     def build(self):
         """
@@ -49,12 +47,17 @@ class _PointCloud:
         given shape
         """
         mesh = self.get_mesh()
+        r1 = np.random.rand() * (2*np.pi)
+        r2 = np.random.rand() * (2 * np.pi)
+        r3 = np.random.rand() * (2 * np.pi)
+        R = mesh.get_rotation_matrix_from_xyz((r1, r2, r3))
+        mesh = mesh.rotate(R)
+
         faces = np.array(mesh.triangles)
         vertices = np.array(mesh.vertices)
 
         triangles = vertices[faces]
         p = self.sample_triangles(triangles, self.N)
-        p = self.center_point_cloud(p)
         return p
 
     @staticmethod

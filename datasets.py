@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 from ntpath import basename
 from tqdm import tqdm
+from geometry import *
 
 
 class PointCloudDataset:
@@ -60,3 +61,15 @@ class PointCloudDataset:
         data = data.batch(self.batch_size)
 
         return data
+
+
+if __name__ == '__main__':
+    shapes = [Cone(), Cube(), Cylinder(), Sphere(), Torus()]
+    for s in shapes:
+        name = str(type(s).__name__).lower()
+        for i in range(1000):
+            p = s.build()
+            np.save(f"data/train/{name}/{name}_{str(i).zfill(4)}", p)
+        for i in range(100):
+            p = s.build()
+            np.save(f"data/test/{name}/{name}_{str(i).zfill(4)}", p)
