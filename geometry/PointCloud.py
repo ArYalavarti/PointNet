@@ -1,6 +1,4 @@
-import open3d as o3d
 import numpy as np
-from eval import visualize_point_cloud
 
 
 def triangle_areas(v1, v2, v3):

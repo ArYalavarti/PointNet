@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
-from geometry import *
+from geometry import Cone, Cylinder, Cube, Torus, Sphere
 import open3d as o3d
 from tqdm import tqdm
 
@@ -21,7 +21,7 @@ def visualize_point_cloud(point_cloud):
     else:
         pcd = point_cloud
 
-    # o3d.visualization.draw_geometries([pcd], mesh_show_back_face=True)
+    o3d.visualization.draw_geometries([pcd], mesh_show_back_face=True)
 
 
 def confusion_plot(model, dataset, mode, filename="", cm=None):
@@ -41,22 +41,18 @@ def confusion_plot(model, dataset, mode, filename="", cm=None):
                 xticklabels=dataset.classes)
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
-    plt.title(f"Confusion Matrix ({mode.capitalize()})")
+    plt.title(f"Baseline Confusion Matrix ({mode.capitalize()})")
     plt.show()
 
 
 def generate_new_shapes_test(model):
     shapes = [Cone(), Cube(), Cylinder(), Sphere(), Torus()]
-    correct = 0
-    total = 0
-
+    p = []
+    l = []
     for e, s in enumerate(shapes):
-        for i in tqdm(range(1000)):
-            p = s.build()
-            p = np.expand_dims(p, axis=0)
-            pred = model(p)[0]
-            pred = np.argmax(pred)
-            if e == pred:
-                correct += 1
-            total += 1
-    print(correct/total)
+        for _ in tqdm(range(100)):
+            p.append(s.build())
+            l.append(e)
+    p = np.stack(p)
+    print(np.mean(l == np.argmax(model(p), axis=1)))
+    model.summary()

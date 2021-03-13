@@ -28,6 +28,11 @@ def parse_args():
         help="Directory to store checkpoint model weights and TensorBoard logs")
 
     parser.add_argument(
+        "--model",
+        default="baseline",
+        help="Model to use for training. Options are <baseline, baseline_rnn>")
+
+    parser.add_argument(
         "--device",
         type=str,
         default="GPU:0" if gpu_available else "CPU:0",

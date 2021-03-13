@@ -3,9 +3,7 @@ MAX_LENGTH = 10
 
 
 class Classification:
-    BATCH_SIZE = 32
+    BATCH_SIZE = 128
 
-    learning_rate = 0.0001
-    ae_learning_rate = 0.0005
-    momentum = 0.9
+    learning_rate = 0.0003
     classes = 5

@@ -5,7 +5,8 @@ from datetime import datetime
 
 from datasets import PointCloudDataset
 from args import parse_args
-from nn import Classification as hp, PointNetSoftmaxClassification, Baseline
+from nn import Classification as hp, PointNetSoftmaxClassification, Baseline, \
+    BaselineRNN
 from eval import confusion_plot, generate_new_shapes_test
 
 tf.keras.backend.set_floatx('float64')
@@ -16,7 +17,10 @@ if __name__ == '__main__':
     time_now = datetime.now()
     timestamp = time_now.strftime("%m%d%y-%H%M%S")
 
-    model = Baseline()
+    if ARGS.model == "baseline":
+        model = Baseline()
+    else:
+        model = BaselineRNN()
 
     # Set up tf checkpoint manager
     checkpoint = tf.train.Checkpoint(model=model)
@@ -46,7 +50,6 @@ if __name__ == '__main__':
     train_obj = PointNetSoftmaxClassification(
         model, train_log_dir, test_log_dir, manager)
 
-
     try:
         with tf.device("/device:" + ARGS.device):
             if ARGS.command == "train":
@@ -54,7 +57,8 @@ if __name__ == '__main__':
                                 ARGS.init_epoch)
 
             elif ARGS.command == "test":
-                train_obj.test(train_data, test_data)
+                # train_obj.test(train_data, test_data)
+                generate_new_shapes_test(model)
 
             elif ARGS.command == 'evaluate':
                 confusion = None
